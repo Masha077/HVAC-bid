@@ -1,24 +1,491 @@
 import { useRef, useState } from 'react';
-import { Link } from 'wouter';
-import { ArrowRight, Check, ChevronRight, ClipboardCheck, CloudOff, Database, FileCheck2, FileText, FileUp, Filter, Gauge, Info, LockKeyhole, MapPin, MoreHorizontal, Plus, RefreshCw, Search, ShieldCheck, SlidersHorizontal, Sparkles, Upload, X } from 'lucide-react';
+import { Link, useLocation } from 'wouter';
+import { ArrowRight, Check, ChevronRight, ClipboardCheck, CloudOff, Database, FileCheck2, FileText, FileUp, Filter, Gauge, Info, LockKeyhole, LogIn, MapPin, MoreHorizontal, Plus, RefreshCw, Search, ShieldCheck, SlidersHorizontal, Sparkles, Upload, UserPlus, X } from 'lucide-react';
 import { demoDocuments, demoEquipment, demoProject, demoRequirement, validationRows, auditRows, deliverables, type Document } from '@/data/demo';
 import { authService, documentService, requirementService, sizingService } from '@/services';
+import { useAuth } from '@/contexts/auth-context';
+import { SupplierAvailabilityMap } from '@/components/supplier-availability-map';
 
 export function HomePage() {
-  const [loginNote, setLoginNote] = useState('');
-  return <div className="min-h-[100dvh] overflow-hidden bg-[#1E1E24] text-[#FFF8F0]"><div className="mx-auto flex min-h-[100dvh] max-w-[1440px] flex-col px-5 py-5 sm:px-10 sm:py-8">
-    <div className="flex items-center justify-between"><div className="flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#92140C]"><svg width="23" height="23" viewBox="0 0 38 38" fill="none"><path d="M7 25h24M10 25V14l9-6 9 6v11M15 25v-7h8v7" stroke="#FFF8F0" strokeWidth="2"/></svg></div><div><div className="font-brand text-[13px] tracking-[.1em]">HVAC BIS</div><div className="mt-1 text-[9px] tracking-[.14em] text-[#FFF8F0]/45">HVAC BID INTELLIGENCE AND VALIDATION SYSTEM</div></div></div><div className="hidden items-center gap-2 text-[11px] text-[#FFF8F0]/48 sm:flex"><span className="h-1.5 w-1.5 rounded-full bg-[#D99A79]"/>Private workspace <span className="mx-2 text-[#FFF8F0]/20">·</span> No data leaves your control</div></div>
-    <div className="grid flex-1 items-center gap-14 py-14 lg:grid-cols-[1.15fr_.85fr] lg:gap-24"><div className="animate-rise"><div className="mb-6 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.22em] text-[#D99A79]"><span className="h-px w-9 bg-[#D99A79]"/>Engineering workbench</div><h1 className="max-w-[700px] font-brand text-4xl leading-[1.2] tracking-[-.02em] sm:text-6xl lg:text-[72px]">From bid noise<br/><span className="text-[#D99A79]">to defensible</span><br/>decisions.</h1><p className="mt-8 max-w-[510px] text-base leading-8 text-[#FFF8F0]/60">HVAC BIS brings requirements, calculations, equipment evidence, and validation into one traceable place for the people responsible for the bid.</p><div className="mt-10 flex flex-wrap items-center gap-3 text-xs text-[#FFF8F0]/55"><span className="rounded-full border border-[#FFF8F0]/15 px-3 py-2">Source-aware</span><span className="rounded-full border border-[#FFF8F0]/15 px-3 py-2">Reviewable</span><span className="rounded-full border border-[#FFF8F0]/15 px-3 py-2">Built for MEP teams</span></div></div>
-      <div className="animate-rise-2 rounded-2xl border border-[#FFF8F0]/13 bg-[#FFF8F0]/[.055] p-6 backdrop-blur-sm sm:p-8"><div className="mb-7 flex items-center justify-between"><div><div className="text-[10px] font-semibold uppercase tracking-[.18em] text-[#FFF8F0]/45">Sign in to workspace</div><h2 className="mt-2 text-xl font-semibold">Good work needs a clear trail.</h2></div><LockKeyhole size={18} className="text-[#D99A79]"/></div><label className="text-[11px] font-semibold uppercase tracking-[.12em] text-[#FFF8F0]/54">Work email</label><input type="email" placeholder="you@company.com" className="mt-2 w-full rounded-lg border border-[#FFF8F0]/15 bg-[#FFF8F0]/[.06] px-3.5 py-3 text-sm text-[#FFF8F0] outline-none placeholder:text-[#FFF8F0]/30 focus:border-[#D99A79]" data-testid="input-login-email"/><button onClick={async()=>{const result=await authService.beginLogin();setLoginNote(result.message)}} className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#92140C] px-4 py-3.5 text-sm font-semibold text-[#FFF8F0] transition-transform hover:-translate-y-0.5" data-testid="button-login">Continue with work account <ArrowRight size={16}/></button><div className="my-6 flex items-center gap-3 text-[10px] uppercase tracking-[.16em] text-[#FFF8F0]/28"><span className="h-px flex-1 bg-[#FFF8F0]/10"/>or<span className="h-px flex-1 bg-[#FFF8F0]/10"/></div><button className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#FFF8F0]/15 px-4 py-3 text-xs text-[#FFF8F0]/70 hover:bg-[#FFF8F0]/[.07]" data-testid="button-sso-login"><ShieldCheck size={15}/>Use configured SSO provider</button>{loginNote && <div className="mt-4 rounded-lg border border-[#D99A79]/30 bg-[#D99A79]/10 p-3 text-xs leading-relaxed text-[#F0C6B0]" data-testid="status-login-pending">{loginNote}</div>}<p className="mt-6 text-center text-[10px] leading-relaxed text-[#FFF8F0]/32">Authentication is ready for provider connection.<br/>HVAC BIS does not store passwords or tokens.</p></div>
-     </div>
-     <div className="mb-8 rounded-xl border border-[#FFF8F0]/10 bg-[#FFF8F0]/[.035] p-4 sm:p-5" data-testid="section-signed-in-preview"><div className="flex flex-wrap items-center justify-between gap-4"><div><div className="text-[10px] font-semibold uppercase tracking-[.18em] text-[#D99A79]">Signed-in workspace preview</div><div className="mt-2 text-sm font-semibold">Chennai Office HVAC <span className="font-normal text-[#FFF8F0]/45">· requirement-driven mode</span></div></div><Link href="/workspace" className="flex items-center gap-2 rounded-lg bg-[#FFF8F0] px-3 py-2 text-xs font-semibold text-[#1E1E24] hover:bg-[#F0D9C8]" data-testid="link-open-demo-workspace">Open demo workspace <ArrowRight size={14}/></Link></div><div className="mt-4 grid grid-cols-2 gap-3 border-t border-[#FFF8F0]/10 pt-4 sm:grid-cols-4"><div><div className="text-lg font-semibold">3</div><div className="text-[10px] text-[#FFF8F0]/42">spaces in scope</div></div><div><div className="text-lg font-semibold">15</div><div className="text-[10px] text-[#FFF8F0]/42">occupants</div></div><div><div className="text-lg font-semibold">6</div><div className="text-[10px] text-[#FFF8F0]/42">source documents</div></div><div><div className="text-lg font-semibold text-[#D99A79]">2.4 TR</div><div className="text-[10px] text-[#FFF8F0]/42">preliminary estimate</div></div></div></div>
-     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#FFF8F0]/10 pt-5 text-[10px] uppercase tracking-[.14em] text-[#FFF8F0]/35"><span>Requirement-driven mode active</span><span>Demo project available <span className="mx-2 text-[#FFF8F0]/15">·</span> Chennai Office HVAC</span></div>
-  </div></div>;
+  const { user, profile, signIn, signUp, signOut, resetPassword } = useAuth();
+  const [, setLocation] = useLocation();
+
+  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'forgot'>('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [successNote, setSuccessNote] = useState('');
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setSuccessNote('');
+    if (!email.trim() || !password) {
+      setAuthError('Please enter both your work email and password.');
+      return;
+    }
+    setSubmitting(true);
+    const { error } = await signIn(email, password);
+    setSubmitting(false);
+    if (error) {
+      setAuthError(error);
+    } else {
+      setLocation('/workspace');
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setSuccessNote('');
+    if (!email.trim() || !password) {
+      setAuthError('Please enter an email and password.');
+      return;
+    }
+    if (password.length < 6) {
+      setAuthError('Password must be at least 6 characters long.');
+      return;
+    }
+    setSubmitting(true);
+    const { error, needsEmailConfirmation } = await signUp(email, password, {
+      fullName: fullName.trim() || email.split('@')[0],
+      companyName: companyName.trim() || 'Southline MEP Engineering',
+      role: 'HVAC_ESTIMATOR',
+    });
+    setSubmitting(false);
+    if (error) {
+      setAuthError(error);
+    } else if (needsEmailConfirmation) {
+      setSuccessNote('Account created! Please check your email inbox to confirm your account, then sign in.');
+      setAuthMode('signin');
+    } else {
+      setLocation('/workspace');
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setSuccessNote('');
+    if (!email.trim()) {
+      setAuthError('Please enter your work email address.');
+      return;
+    }
+    setSubmitting(true);
+    const { error, successMessage } = await resetPassword(email);
+    setSubmitting(false);
+    if (error) {
+      setAuthError(error);
+    } else {
+      setSuccessNote(successMessage || 'Password reset link sent to your email.');
+    }
+  };
+
+  const userInitials = (profile?.full_name || user?.email || 'ME')
+    .split(' ')
+    .map((n: string) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
+  return (
+    <div className="min-h-[100dvh] overflow-hidden bg-[#1E1E24] text-[#FFF8F0]">
+      <div className="mx-auto flex min-h-[100dvh] max-w-[1440px] flex-col px-5 py-5 sm:px-10 sm:py-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#92140C]">
+              <svg width="23" height="23" viewBox="0 0 38 38" fill="none">
+                <path d="M7 25h24M10 25V14l9-6 9 6v11M15 25v-7h8v7" stroke="#FFF8F0" strokeWidth="2"/>
+              </svg>
+            </div>
+            <div>
+              <div className="font-brand text-[13px] tracking-[.1em]">HVAC BIS</div>
+              <div className="mt-1 text-[9px] tracking-[.14em] text-[#FFF8F0]/45">
+                HVAC BID INTELLIGENCE AND VALIDATION SYSTEM
+              </div>
+            </div>
+          </div>
+          <div className="hidden items-center gap-2 text-[11px] text-[#FFF8F0]/48 sm:flex">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#D99A79]"/>
+            Private workspace <span className="mx-2 text-[#FFF8F0]/20">·</span> Supabase RLS Protected
+          </div>
+        </div>
+
+        <div className="grid flex-1 items-center gap-14 py-14 lg:grid-cols-[1.15fr_.85fr] lg:gap-24">
+          <div className="animate-rise">
+            <div className="mb-6 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.22em] text-[#D99A79]">
+              <span className="h-px w-9 bg-[#D99A79]"/>Engineering workbench
+            </div>
+            <h1 className="max-w-[700px] font-brand text-4xl leading-[1.2] tracking-[-.02em] sm:text-6xl lg:text-[72px]">
+              From bid noise<br/>
+              <span className="text-[#D99A79]">to defensible</span><br/>
+              decisions.
+            </h1>
+            <p className="mt-8 max-w-[510px] text-base leading-8 text-[#FFF8F0]/60">
+              HVAC BIS brings requirements, calculations, equipment evidence, and validation into one traceable place for the people responsible for the bid.
+            </p>
+            <div className="mt-10 flex flex-wrap items-center gap-3 text-xs text-[#FFF8F0]/55">
+              <span className="rounded-full border border-[#FFF8F0]/15 px-3 py-2">Source-aware</span>
+              <span className="rounded-full border border-[#FFF8F0]/15 px-3 py-2">Reviewable</span>
+              <span className="rounded-full border border-[#FFF8F0]/15 px-3 py-2">Built for MEP teams</span>
+              <span className="rounded-full border border-[#D99A79]/30 bg-[#D99A79]/10 px-3 py-2 text-[#D99A79]">Supabase Connected</span>
+            </div>
+          </div>
+
+          <div className="animate-rise-2 rounded-2xl border border-[#FFF8F0]/13 bg-[#FFF8F0]/[.055] p-6 backdrop-blur-sm sm:p-8">
+            {user ? (
+              /* Authenticated User View */
+              <div>
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[.18em] text-[#D99A79]">
+                      Authenticated Workspace
+                    </div>
+                    <h2 className="mt-2 text-xl font-semibold">Welcome back.</h2>
+                  </div>
+                  <LockKeyhole size={18} className="text-[#D99A79]"/>
+                </div>
+
+                <div className="rounded-xl border border-[#FFF8F0]/15 bg-[#FFF8F0]/[.06] p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#E0AA8C] text-sm font-bold text-[#4c2118]">
+                      {userInitials}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold">{profile?.full_name || user.email}</div>
+                      <div className="truncate text-xs text-[#FFF8F0]/55">
+                        {profile?.company_name || 'Southline MEP'} · {user.email}
+                      </div>
+                    </div>
+                    <span className="rounded-full bg-[#e5f0e8]/20 px-2 py-0.5 text-[9px] font-semibold text-[#85e3a3]">
+                      ACTIVE
+                    </span>
+                  </div>
+                </div>
+
+                <Link
+                  href="/workspace"
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-[#92140C] px-4 py-3.5 text-sm font-semibold text-[#FFF8F0] transition-transform hover:-translate-y-0.5"
+                  data-testid="button-go-workspace"
+                >
+                  Go to Workspace <ArrowRight size={16}/>
+                </Link>
+
+                <button
+                  onClick={async () => {
+                    await signOut();
+                    setSuccessNote('Signed out successfully.');
+                  }}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-[#FFF8F0]/15 px-4 py-3 text-xs text-[#FFF8F0]/70 hover:bg-[#FFF8F0]/[.07]"
+                  data-testid="button-home-signout"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : authMode === 'signin' ? (
+              /* Sign In Form */
+              <form onSubmit={handleSignIn}>
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[.18em] text-[#FFF8F0]/45">
+                      Sign in to workspace
+                    </div>
+                    <h2 className="mt-2 text-xl font-semibold">Good work needs a clear trail.</h2>
+                  </div>
+                  <LockKeyhole size={18} className="text-[#D99A79]"/>
+                </div>
+
+                <label className="text-[11px] font-semibold uppercase tracking-[.12em] text-[#FFF8F0]/54">
+                  Work email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@company.com"
+                  className="mt-2 w-full rounded-lg border border-[#FFF8F0]/15 bg-[#FFF8F0]/[.06] px-3.5 py-3 text-sm text-[#FFF8F0] outline-none placeholder:text-[#FFF8F0]/30 focus:border-[#D99A79]"
+                  data-testid="input-login-email"
+                />
+
+                <div className="mt-4 flex items-center justify-between">
+                  <label className="text-[11px] font-semibold uppercase tracking-[.12em] text-[#FFF8F0]/54">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('forgot'); setAuthError(''); setSuccessNote(''); }}
+                    className="text-[11px] text-[#D99A79] hover:underline"
+                    data-testid="link-forgot-password"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="mt-2 w-full rounded-lg border border-[#FFF8F0]/15 bg-[#FFF8F0]/[.06] px-3.5 py-3 text-sm text-[#FFF8F0] outline-none placeholder:text-[#FFF8F0]/30 focus:border-[#D99A79]"
+                  data-testid="input-login-password"
+                />
+
+                {authError && (
+                  <div className="mt-4 rounded-lg border border-[#D99A79]/30 bg-[#D99A79]/10 p-3 text-xs leading-relaxed text-[#F0C6B0]" data-testid="status-login-error">
+                    {authError}
+                  </div>
+                )}
+
+                {successNote && (
+                  <div className="mt-4 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-xs leading-relaxed text-green-300" data-testid="status-login-success">
+                    {successNote}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-[#92140C] px-4 py-3.5 text-sm font-semibold text-[#FFF8F0] transition-transform hover:-translate-y-0.5 disabled:opacity-60"
+                  data-testid="button-login"
+                >
+                  {submitting ? 'Signing in...' : 'Sign in with Email'} <ArrowRight size={16}/>
+                </button>
+
+                <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-[.16em] text-[#FFF8F0]/28">
+                  <span className="h-px flex-1 bg-[#FFF8F0]/10"/>or<span className="h-px flex-1 bg-[#FFF8F0]/10"/>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => { setAuthMode('signup'); setAuthError(''); setSuccessNote(''); }}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#FFF8F0]/15 px-4 py-3 text-xs text-[#FFF8F0]/70 hover:bg-[#FFF8F0]/[.07]"
+                  data-testid="button-switch-signup"
+                >
+                  <UserPlus size={15}/>Create a new workspace account
+                </button>
+
+                <p className="mt-6 text-center text-[10px] leading-relaxed text-[#FFF8F0]/32">
+                  Secured with Supabase Authentication.<br/>Sessions persist across browser refreshes.
+                </p>
+              </form>
+            ) : authMode === 'signup' ? (
+              /* Sign Up Form */
+              <form onSubmit={handleSignUp}>
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[.18em] text-[#D99A79]">
+                      Create account
+                    </div>
+                    <h2 className="mt-2 text-xl font-semibold">Join the HVAC Workbench.</h2>
+                  </div>
+                  <UserPlus size={18} className="text-[#D99A79]"/>
+                </div>
+
+                <label className="text-[11px] font-semibold uppercase tracking-[.12em] text-[#FFF8F0]/54">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="e.g. Arjun Menon"
+                  className="mt-2 w-full rounded-lg border border-[#FFF8F0]/15 bg-[#FFF8F0]/[.06] px-3.5 py-3 text-sm text-[#FFF8F0] outline-none placeholder:text-[#FFF8F0]/30 focus:border-[#D99A79]"
+                  data-testid="input-signup-fullname"
+                />
+
+                <label className="mt-3 block text-[11px] font-semibold uppercase tracking-[.12em] text-[#FFF8F0]/54">
+                  Company / Organization
+                </label>
+                <input
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="e.g. Southline MEP Engineering"
+                  className="mt-2 w-full rounded-lg border border-[#FFF8F0]/15 bg-[#FFF8F0]/[.06] px-3.5 py-3 text-sm text-[#FFF8F0] outline-none placeholder:text-[#FFF8F0]/30 focus:border-[#D99A79]"
+                  data-testid="input-signup-company"
+                />
+
+                <label className="mt-3 block text-[11px] font-semibold uppercase tracking-[.12em] text-[#FFF8F0]/54">
+                  Work Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@company.com"
+                  className="mt-2 w-full rounded-lg border border-[#FFF8F0]/15 bg-[#FFF8F0]/[.06] px-3.5 py-3 text-sm text-[#FFF8F0] outline-none placeholder:text-[#FFF8F0]/30 focus:border-[#D99A79]"
+                  data-testid="input-signup-email"
+                />
+
+                <label className="mt-3 block text-[11px] font-semibold uppercase tracking-[.12em] text-[#FFF8F0]/54">
+                  Password (min 6 characters)
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="mt-2 w-full rounded-lg border border-[#FFF8F0]/15 bg-[#FFF8F0]/[.06] px-3.5 py-3 text-sm text-[#FFF8F0] outline-none placeholder:text-[#FFF8F0]/30 focus:border-[#D99A79]"
+                  data-testid="input-signup-password"
+                />
+
+                {authError && (
+                  <div className="mt-4 rounded-lg border border-[#D99A79]/30 bg-[#D99A79]/10 p-3 text-xs leading-relaxed text-[#F0C6B0]" data-testid="status-signup-error">
+                    {authError}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-[#92140C] px-4 py-3.5 text-sm font-semibold text-[#FFF8F0] transition-transform hover:-translate-y-0.5 disabled:opacity-60"
+                  data-testid="button-signup-submit"
+                >
+                  {submitting ? 'Creating account...' : 'Create Account'} <ArrowRight size={16}/>
+                </button>
+
+                <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-[.16em] text-[#FFF8F0]/28">
+                  <span className="h-px flex-1 bg-[#FFF8F0]/10"/>or<span className="h-px flex-1 bg-[#FFF8F0]/10"/>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => { setAuthMode('signin'); setAuthError(''); setSuccessNote(''); }}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#FFF8F0]/15 px-4 py-3 text-xs text-[#FFF8F0]/70 hover:bg-[#FFF8F0]/[.07]"
+                  data-testid="button-switch-signin"
+                >
+                  <LogIn size={15}/>Already have an account? Sign in
+                </button>
+              </form>
+            ) : (
+              /* Forgot Password Form */
+              <form onSubmit={handleResetPassword}>
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[.18em] text-[#D99A79]">
+                      Password recovery
+                    </div>
+                    <h2 className="mt-2 text-xl font-semibold">Reset your password.</h2>
+                  </div>
+                  <LockKeyhole size={18} className="text-[#D99A79]"/>
+                </div>
+
+                <p className="mb-4 text-xs leading-relaxed text-[#FFF8F0]/60">
+                  Enter your work email address and we'll send a password recovery link.
+                </p>
+
+                <label className="text-[11px] font-semibold uppercase tracking-[.12em] text-[#FFF8F0]/54">
+                  Work Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@company.com"
+                  className="mt-2 w-full rounded-lg border border-[#FFF8F0]/15 bg-[#FFF8F0]/[.06] px-3.5 py-3 text-sm text-[#FFF8F0] outline-none placeholder:text-[#FFF8F0]/30 focus:border-[#D99A79]"
+                  data-testid="input-forgot-email"
+                />
+
+                {authError && (
+                  <div className="mt-4 rounded-lg border border-[#D99A79]/30 bg-[#D99A79]/10 p-3 text-xs leading-relaxed text-[#F0C6B0]">
+                    {authError}
+                  </div>
+                )}
+
+                {successNote && (
+                  <div className="mt-4 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-xs leading-relaxed text-green-300">
+                    {successNote}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-[#92140C] px-4 py-3.5 text-sm font-semibold text-[#FFF8F0] transition-transform hover:-translate-y-0.5 disabled:opacity-60"
+                  data-testid="button-forgot-submit"
+                >
+                  {submitting ? 'Sending link...' : 'Send Reset Link'} <ArrowRight size={16}/>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setAuthMode('signin'); setAuthError(''); setSuccessNote(''); }}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-[#FFF8F0]/15 px-4 py-3 text-xs text-[#FFF8F0]/70 hover:bg-[#FFF8F0]/[.07]"
+                  data-testid="button-back-signin"
+                >
+                  Back to Sign In
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+
+        <div className="mb-8 rounded-xl border border-[#FFF8F0]/10 bg-[#FFF8F0]/[.035] p-4 sm:p-5" data-testid="section-signed-in-preview">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[.18em] text-[#D99A79]">
+                Signed-in workspace preview
+              </div>
+              <div className="mt-2 text-sm font-semibold">
+                Chennai Office HVAC <span className="font-normal text-[#FFF8F0]/45">· requirement-driven mode</span>
+              </div>
+            </div>
+            <Link
+              href="/workspace"
+              className="flex items-center gap-2 rounded-lg bg-[#FFF8F0] px-3 py-2 text-xs font-semibold text-[#1E1E24] hover:bg-[#F0D9C8]"
+              data-testid="link-open-demo-workspace"
+            >
+              Open workspace <ArrowRight size={14}/>
+            </Link>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-[#FFF8F0]/10 pt-4 sm:grid-cols-4">
+            <div><div className="text-lg font-semibold">3</div><div className="text-[10px] text-[#FFF8F0]/42">spaces in scope</div></div>
+            <div><div className="text-lg font-semibold">15</div><div className="text-[10px] text-[#FFF8F0]/42">occupants</div></div>
+            <div><div className="text-lg font-semibold">6</div><div className="text-[10px] text-[#FFF8F0]/42">source documents</div></div>
+            <div><div className="text-lg font-semibold text-[#D99A79]">2.4 TR</div><div className="text-[10px] text-[#FFF8F0]/42">preliminary estimate</div></div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#FFF8F0]/10 pt-5 text-[10px] uppercase tracking-[.14em] text-[#FFF8F0]/35">
+          <span>Requirement-driven mode active</span>
+          <span>Supabase PostgreSQL + RLS Enabled <span className="mx-2 text-[#FFF8F0]/15">·</span> Chennai Office HVAC</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function WorkspacePage() {
-  return <AppPage eyebrow="Workspace" title="Good afternoon, Arjun." subtitle="A review-first view of the active bid. Every number below is labeled by provenance."><div className="blueprint-grid -mx-4 border-y border-border px-4 py-5 sm:-mx-8 sm:px-8"><ProjectStrip/></div><div className="mt-7 grid gap-5 xl:grid-cols-[1.4fr_.6fr]"><RequirementComposer/><SizingCard/></div><div className="mt-5 grid gap-5 lg:grid-cols-3"><TraceCard/><ValidationCard/><NextActions/></div><ProvenanceLegend/></AppPage>;
+  const { profile, user } = useAuth();
+  const firstName = profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Engineer';
+
+  return (
+    <AppPage
+      eyebrow="Workspace"
+      title={`Good afternoon, ${firstName}.`}
+      subtitle="A review-first view of the active bid. Every number below is labeled by provenance."
+    >
+      <div className="blueprint-grid -mx-4 border-y border-border px-4 py-5 sm:-mx-8 sm:px-8">
+        <ProjectStrip/>
+      </div>
+      <div className="mt-7">
+        <RequirementComposer/>
+      </div>
+      <div className="mt-5 grid gap-5 lg:grid-cols-3">
+        <TraceCard/>
+        <ValidationCard/>
+        <NextActions/>
+      </div>
+      <div className="mt-5">
+        <SizingCard/>
+      </div>
+      <ProvenanceLegend/>
+    </AppPage>
+  );
 }
+
 function ProjectStrip(){return <div className="flex flex-wrap items-center justify-between gap-4"><div className="flex items-center gap-3"><div className="rounded-lg bg-primary p-2.5 text-primary-foreground"><Database size={17}/></div><div><div className="text-sm font-semibold">{demoProject.name}</div><div className="mt-1 text-xs text-muted-foreground">{demoProject.location} · {demoProject.buildingType}</div></div></div><div className="flex items-center gap-4"><StatusPill label="IN REVIEW" tone="warm"/><div className="hidden text-right sm:block"><div className="text-[10px] uppercase tracking-wider text-muted-foreground">Last updated</div><div className="mt-1 text-xs">{demoProject.updatedAt}</div></div><Link href="/projects/chennai-office" className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline" data-testid="link-open-project">Open project <ArrowRight size={14}/></Link></div></div>}
 type InputMode = 'REQUIREMENT_DRIVEN' | 'DOCUMENT_DRIVEN';
 type StagedDocument = { id: string; file: File };
@@ -218,7 +685,59 @@ function DocumentWorkflowRail() {
     </div>
   );
 }
-function SizingCard(){const [note,setNote]=useState('');return <section className="card-surface rounded-xl p-5 sm:p-6"><div className="flex items-start justify-between"><div><SectionKicker icon={<GaugeIcon/>} text="Sizing snapshot"/><h2 className="mt-2 text-lg font-semibold">Preliminary engineering view</h2></div><span className="rounded-full border border-[#c99077]/40 bg-[#f8e7de] px-2 py-1 text-[10px] font-semibold text-[#6c2f23]">DEMO DATA</span></div><div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-5">{[['2.4 TR','Cooling load'],['960 CFM','Airflow'],['93 CFM','Fresh air'],['3','Spaces'],['15','Occupants']].map(([v,l])=><div key={l}><div className="text-xl font-semibold tracking-tight">{v}</div><div className="mt-1 text-[11px] text-muted-foreground">{l}</div></div>)}</div><div className="mt-5 rounded-lg bg-muted/70 p-3 text-[11px] leading-relaxed text-muted-foreground"><span className="font-semibold text-foreground">PRELIMINARY ESTIMATE.</span> Verify loads, diversity, ventilation, and equipment selection before tender issue.</div><button onClick={async()=>{const r=await sizingService.calculate(demoProject.id);setNote(r.message)}} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-xs font-semibold hover:bg-muted" data-testid="button-request-sizing"><RefreshCw size={14}/>Request connected calculation</button>{note&&<div className="mt-2 text-center text-[10px] text-primary" data-testid="status-sizing-pending">{note}</div>}</section>}
+function SizingCard() {
+  const [note, setNote] = useState('');
+  return (
+    <section className="card-surface rounded-xl p-5 sm:p-6" data-testid="section-sizing-snapshot">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <SectionKicker icon={<GaugeIcon />} text="Sizing snapshot" />
+          <h2 className="mt-2 text-lg font-semibold">Preliminary engineering view</h2>
+        </div>
+        <span className="rounded-full border border-[#c99077]/40 bg-[#f8e7de] px-2.5 py-1 text-[10px] font-semibold text-[#6c2f23]">
+          DEMO DATA
+        </span>
+      </div>
+      <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        {[
+          ['2.4 TR', 'Cooling load'],
+          ['960 CFM', 'Airflow'],
+          ['93 CFM', 'Fresh air'],
+          ['3', 'Spaces'],
+          ['15', 'Occupants'],
+        ].map(([v, l]) => (
+          <div key={l} className="rounded-lg border border-border/80 bg-card/60 p-3.5">
+            <div className="text-xl font-semibold tracking-tight text-foreground">{v}</div>
+            <div className="mt-1 text-[11px] text-muted-foreground">{l}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="rounded-lg bg-muted/70 p-3 text-[11px] leading-relaxed text-muted-foreground sm:flex-1">
+          <span className="font-semibold text-foreground">PRELIMINARY ESTIMATE.</span> Verify loads, diversity, ventilation, and equipment selection before tender issue.
+        </div>
+        <div className="sm:w-auto">
+          <button
+            onClick={async () => {
+              const r = await sizingService.calculate(demoProject.id);
+              setNote(r.message);
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-muted"
+            data-testid="button-request-sizing"
+          >
+            <RefreshCw size={14} />
+            Request connected calculation
+          </button>
+          {note && (
+            <div className="mt-1.5 text-center text-[10px] text-primary" data-testid="status-sizing-pending">
+              {note}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
 function TraceCard(){return <section className="card-surface rounded-xl p-5"><SectionKicker icon={<FileCheck2 size={14}/>} text="Traceability"/><h2 className="mt-2 text-lg font-semibold">Known, not assumed.</h2><div className="mt-4 space-y-2.5">{[['SOURCE FACT','3 spaces identified','Tender brief + plan'],['DETERMINISTIC CALCULATION','Occupancy total: 15','Space register'],['AI RECOMMENDATION','Confirm glazing and heat load','NEEDS REVIEW']].map(([a,b,c])=><div key={a} className="border-l-2 border-primary/35 pl-3"><div className="text-[10px] font-semibold uppercase tracking-wider text-primary">{a}</div><div className="mt-1 text-xs font-medium">{b}</div><div className="mt-0.5 text-[10px] text-muted-foreground">{c}</div></div>)}</div></section>}
 function ValidationCard(){return <section className="card-surface rounded-xl p-5"><SectionKicker icon={<ClipboardCheck size={14}/>} text="Bid validation"/><div className="mt-2 flex items-end justify-between"><h2 className="text-lg font-semibold">Review posture</h2><StatusPill label="2 warnings" tone="warm"/></div><div className="mt-4 space-y-2">{validationRows.slice(0,4).map(([label,status])=><div className="flex items-center justify-between text-xs" key={label}><span>{label}</span><StatusPill label={status} tone={status==='PASS'?'good':status==='CONFLICT'?'bad':'warm'}/></div>)}</div><Link href="/validation" className="mt-4 flex items-center gap-1 text-xs font-semibold text-primary hover:underline" data-testid="link-review-validation">Review validation <ArrowRight size={14}/></Link></section>}
 function NextActions(){return <section className="card-surface rounded-xl p-5"><SectionKicker icon={<Sparkles size={14}/>} text="Next actions"/><h2 className="mt-2 text-lg font-semibold">Resolve what blocks confidence.</h2><div className="mt-4 space-y-2">{[['01','Confirm glazing and orientation'],['02','Upload verified equipment schedule'],['03','Reconcile operating hours']].map(([n,t])=><Link href="/requirements" key={n} className="group flex items-center gap-3 rounded-lg border border-border p-3 hover:border-primary/45 hover:bg-muted" data-testid={`link-next-action-${n}`}><span className="font-brand text-[10px] text-primary">{n}</span><span className="flex-1 text-xs">{t}</span><ChevronRight size={14} className="text-muted-foreground transition-transform group-hover:translate-x-0.5"/></Link>)}</div></section>}
@@ -237,14 +756,160 @@ function SpacesTable(){return <section className="card-surface overflow-hidden r
 
 export function ValidationPage(){return <AppPage eyebrow="Validation" title="Bid validation" subtitle="A review-focused surface for what passes, what conflicts, and what cannot be claimed yet."><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[['Completeness','4 / 6 checks','WARNING'],['Compatibility','Needs equipment data','NEEDS REVIEW'],['Capacity','2.4 TR preliminary','WARNING'],['Consistency','1 source conflict','CONFLICT']].map(([a,b,c])=><div key={a} className="card-surface rounded-xl p-4"><div className="text-[10px] uppercase tracking-[.13em] text-muted-foreground">{a}</div><div className="mt-3 text-sm font-semibold">{b}</div><div className="mt-3"><StatusPill label={c} tone={c==='CONFLICT'?'bad':'warm'}/></div></div>)}</div><section className="card-surface mt-5 overflow-hidden rounded-xl"><div className="flex items-center justify-between border-b border-border p-5"><div><SectionKicker icon={<ClipboardCheck size={14}/>} text="Validation register"/><h2 className="mt-2 text-lg font-semibold">Review findings</h2></div><button className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:bg-muted" data-testid="button-run-validation"><RefreshCw size={14}/>Request fresh validation</button></div><div>{validationRows.map(([label,status,detail])=><div key={label} className="flex flex-col gap-3 border-b border-border px-5 py-4 last:border-0 sm:grid sm:grid-cols-[1fr_150px_1.4fr] sm:items-center"><div className="text-sm font-semibold">{label}</div><div><StatusPill label={status} tone={status==='PASS'?'good':status==='CONFLICT'?'bad':'warm'}/></div><div className="text-xs text-muted-foreground">{detail}</div></div>)}</div></section><section className="mt-5 card-surface rounded-xl p-5"><SectionKicker icon={<HistoryIcon/>} text="Review principle"/><p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">A validation result is not a sign-off. PASS indicates the prototype can trace a check to its current source. NEEDS REVIEW and CONFLICT stay visible until a person resolves them.</p></section></AppPage>}
 
-export function EquipmentPage(){return <AppPage eyebrow="Equipment" title="Equipment & availability" subtitle="A safe place for verified catalog evidence—without inventing manufacturer, model, or supplier claims."><div className="flex flex-wrap gap-2"><div className="flex min-w-[230px] flex-1 items-center gap-2 rounded-lg border border-border bg-card px-3"><Search size={15} className="text-muted-foreground"/><input placeholder="Search by type, capacity, supplier" className="w-full bg-transparent py-2.5 text-xs outline-none" data-testid="input-equipment-search"/></div><button className="flex items-center gap-2 rounded-lg border border-border px-3 py-2.5 text-xs font-semibold hover:bg-muted" data-testid="button-equipment-filter"><Filter size={14}/>Filters</button><button className="flex items-center gap-2 rounded-lg border border-border px-3 py-2.5 text-xs font-semibold text-muted-foreground" disabled data-testid="button-provider-integration"><Database size={14}/>Provider integration · coming soon</button></div><div className="mt-5 grid gap-5 lg:grid-cols-[1fr_1.15fr]"><section className="card-surface rounded-xl p-5 sm:p-6"><SectionKicker icon={<Database size={14}/>} text="Equipment record"/><h2 className="mt-2 text-lg font-semibold">{demoEquipment.type}</h2><StatusPill label="Awaiting verified equipment data" tone="warm"/><div className="mt-5 grid grid-cols-2 gap-4">{[['Capacity',demoEquipment.capacity],['Airflow',demoEquipment.airflow],['Quantity',demoEquipment.quantity],['Manufacturer',demoEquipment.manufacturer],['Model',demoEquipment.model],['Voltage',demoEquipment.voltage],['Efficiency',demoEquipment.efficiency],['Price',demoEquipment.price]].map(([a,b])=><div key={a}><div className="text-[10px] uppercase tracking-wider text-muted-foreground">{a}</div><div className="mt-1 text-xs">{b}</div></div>)}</div><div className="mt-5 flex items-start gap-2 rounded-lg bg-muted/70 p-3 text-[11px] leading-relaxed text-muted-foreground"><Info size={14} className="mt-0.5 shrink-0"/><span>Equipment details are intentionally blank until verified data is connected. This prevents a plausible-looking but unsupported selection.</span></div></section><section className="card-surface relative min-h-[360px] overflow-hidden rounded-xl blueprint-grid"><div className="absolute inset-0 bg-[#dce8e7]/55"/><div className="relative flex h-full min-h-[360px] flex-col p-5 sm:p-6"><div className="flex items-start justify-between"><div><SectionKicker icon={<MapPin size={14}/>} text="Supplier availability map"/><h2 className="mt-2 text-lg font-semibold">Provider layer not connected</h2></div><span className="rounded-full border border-border bg-card/75 px-2 py-1 text-[10px] text-muted-foreground">PREVIEW</span></div><div className="m-auto max-w-[280px] text-center"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-card/85 text-primary shadow-sm"><MapPin size={21}/></div><div className="mt-4 text-sm font-semibold">Awaiting verified supplier data</div><p className="mt-2 text-xs leading-relaxed text-muted-foreground">Markers, distances, availability, and provider filters will appear here when the supplier service is connected.</p></div><div className="flex items-center justify-between text-[10px] text-muted-foreground"><span>Chennai region · DEMO MAP AREA</span><span>0 verified markers</span></div></div></section></div></AppPage>}
+export function EquipmentPage() {
+  return (
+    <AppPage
+      eyebrow="Equipment"
+      title="Equipment & availability"
+      subtitle="A safe place for verified catalog evidence—without inventing manufacturer, model, or supplier claims."
+    >
+      <div className="flex flex-wrap gap-2">
+        <div className="flex min-w-[230px] flex-1 items-center gap-2 rounded-lg border border-border bg-card px-3">
+          <Search size={15} className="text-muted-foreground" />
+          <input
+            placeholder="Search by type, capacity, supplier"
+            className="w-full bg-transparent py-2.5 text-xs outline-none"
+            data-testid="input-equipment-search"
+          />
+        </div>
+        <button
+          className="flex items-center gap-2 rounded-lg border border-border px-3 py-2.5 text-xs font-semibold hover:bg-muted"
+          data-testid="button-equipment-filter"
+        >
+          <Filter size={14} />
+          Filters
+        </button>
+        <button
+          className="flex items-center gap-2 rounded-lg border border-border px-3 py-2.5 text-xs font-semibold text-muted-foreground"
+          disabled
+          data-testid="button-provider-integration"
+        >
+          <Database size={14} />
+          Provider integration · connected
+        </button>
+      </div>
+
+      <div className="mt-5">
+        <section className="card-surface rounded-xl p-5 sm:p-6" data-testid="section-equipment-record">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <SectionKicker icon={<Database size={14} />} text="Equipment record" />
+              <h2 className="mt-2 text-lg font-semibold text-foreground">{demoEquipment.type}</h2>
+            </div>
+            <StatusPill label="Awaiting verified equipment data" tone="warm" />
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {[
+              ['Capacity', demoEquipment.capacity],
+              ['Airflow', demoEquipment.airflow],
+              ['Quantity', demoEquipment.quantity],
+              ['Manufacturer', demoEquipment.manufacturer],
+              ['Model', demoEquipment.model],
+              ['Voltage', demoEquipment.voltage],
+              ['Efficiency', demoEquipment.efficiency],
+              ['Price', demoEquipment.price],
+            ].map(([a, b]) => (
+              <div key={a} className="rounded-lg border border-border/80 bg-card/60 p-3.5">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{a}</div>
+                <div className="mt-1 text-sm font-semibold text-foreground">{b}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 flex items-start gap-2 rounded-lg bg-muted/70 p-3 text-[11px] leading-relaxed text-muted-foreground">
+            <Info size={14} className="mt-0.5 shrink-0" />
+            <span>
+              Equipment details are intentionally blank until verified data is connected. This prevents a
+              plausible-looking but unsupported selection.
+            </span>
+          </div>
+        </section>
+      </div>
+
+      <div className="mt-6">
+        <SupplierAvailabilityMap />
+      </div>
+    </AppPage>
+  );
+}
 
 export function SettingsPage(){const [dark,setDark]=useState(false);return <AppPage eyebrow="Settings" title="Workspace settings" subtitle="Preferences are shown locally for this prototype. Persistence is not connected."><div className="grid gap-5 lg:grid-cols-[220px_1fr]"><aside className="space-y-1">{['Appearance','Language','Account','Notifications','Data','Security'].map((x,i)=><button key={x} className={`flex w-full items-center rounded-lg px-3 py-2.5 text-left text-xs ${i===0?'bg-primary text-primary-foreground':'text-muted-foreground hover:bg-muted'}`} data-testid={`button-settings-${x.toLowerCase()}`}>{x}</button>)}</aside><div className="space-y-5"><section className="card-surface rounded-xl p-5 sm:p-6"><SectionKicker icon={<SlidersHorizontal size={14}/>} text="Appearance"/><h2 className="mt-2 text-lg font-semibold">A quieter workbench</h2><div className="mt-5 flex items-center justify-between rounded-lg border border-border p-4"><div><div className="text-sm font-medium">Dark interface</div><div className="mt-1 text-xs text-muted-foreground">Use the low-light palette for site reviews.</div></div><button onClick={()=>{setDark(!dark);document.documentElement.classList.toggle('dark',!dark)}} className={`h-6 w-11 rounded-full p-1 transition-colors ${dark?'bg-primary':'bg-border'}`} data-testid="switch-dark-mode"><span className={`block h-4 w-4 rounded-full bg-background transition-transform ${dark?'translate-x-5':''}`}/></button></div><div className="mt-3 flex items-center justify-between rounded-lg border border-border p-4"><div><div className="text-sm font-medium">Interface density</div><div className="mt-1 text-xs text-muted-foreground">Comfortable spacing for review sessions.</div></div><span className="text-xs text-muted-foreground">Comfortable</span></div></section><section className="card-surface rounded-xl p-5 sm:p-6"><SectionKicker icon={<CloudOff size={14}/>} text="Integration status"/><h2 className="mt-2 text-lg font-semibold">Connect the workbench when ready.</h2><div className="mt-4 grid gap-2 sm:grid-cols-2">{['Authentication','Project persistence','Document processing','Verified equipment data'].map(x=><div key={x} className="flex items-center gap-3 rounded-lg bg-muted/60 p-3 text-xs"><span className="h-2 w-2 rounded-full bg-[#c99077]"/>{x}<span className="ml-auto text-[10px] text-muted-foreground">PENDING</span></div>)}</div></section></div></div></AppPage>}
 
-export function ProfilePage(){return <AppPage eyebrow="Account" title="Profile & login details" subtitle="Identity is provider-managed. HVAC BIS does not store passwords, tokens, or local authentication state."><section className="card-surface max-w-2xl rounded-xl p-5 sm:p-7"><div className="flex items-center gap-4 border-b border-border pb-6"><div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E0AA8C] text-lg font-bold text-[#4c2118]">AM</div><div><div className="text-lg font-semibold">Arjun Menon</div><div className="mt-1 text-xs text-muted-foreground">Southline MEP · Estimator / project lead</div></div><span className="ml-auto rounded-full bg-accent px-2.5 py-1 text-[10px] font-semibold text-accent-foreground">DEMO PROFILE</span></div><div className="mt-6 grid gap-5 sm:grid-cols-2">{[['Name','Arjun Menon'],['Work email','arjun@demo-company.example'],['Organization','Southline MEP'],['Role','Estimator / project lead'],['Authentication provider','Configured SSO · pending'],['Workspace access','Project reviewer']].map(([a,b])=><div key={a}><div className="text-[10px] uppercase tracking-wider text-muted-foreground">{a}</div><div className="mt-1 text-sm">{b}</div></div>)}</div><div className="mt-7 flex items-center gap-2 rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground"><LockKeyhole size={14}/>Login details will be supplied by the configured authentication provider.</div></section></AppPage>}
+export function ProfilePage() {
+  const { user, profile, signOut } = useAuth();
+  const [, setLocation] = useLocation();
 
-function AppPage({eyebrow,title,subtitle,children}:{eyebrow:string;title:string;subtitle:string;children:React.ReactNode}){return <div className="mx-auto max-w-[1400px] px-4 py-7 sm:px-8 sm:py-10"><div className="animate-rise"><div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.17em] text-primary"><span className="h-px w-7 bg-primary/55"/>{eyebrow}</div><div className="mt-3 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><h1 className="font-brand text-2xl leading-tight tracking-[-.02em] sm:text-3xl">{title}</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{subtitle}</p></div><div className="flex items-center gap-2 text-[10px] text-muted-foreground"><span className="h-1.5 w-1.5 rounded-full bg-[#B9785E]"/>DEMO DATA · review before use</div></div></div><div className="mt-8 animate-rise-2">{children}</div></div>}
-function SectionKicker({icon,text}:{icon:React.ReactNode;text:string}){return <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.14em] text-primary">{icon}{text}</div>}
+  const userInitials = (profile?.full_name || user?.email || 'AM')
+    .split(' ')
+    .map((n: string) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
+  const handleLogout = async () => {
+    await signOut();
+    setLocation('/');
+  };
+
+  return (
+    <AppPage
+      eyebrow="Account"
+      title="Profile & login details"
+      subtitle="Identity is managed securely via Supabase Auth with Row Level Security."
+    >
+      <section className="card-surface max-w-2xl rounded-xl p-5 sm:p-7">
+        <div className="flex items-center gap-4 border-b border-border pb-6">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E0AA8C] text-lg font-bold text-[#4c2118]">
+            {userInitials}
+          </div>
+          <div>
+            <div className="text-lg font-semibold">{profile?.full_name || user?.email || 'Arjun Menon'}</div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              {profile?.company_name || 'Southline MEP'} · {profile?.role || 'HVAC_ESTIMATOR'}
+            </div>
+          </div>
+          <span className="ml-auto rounded-full bg-accent px-2.5 py-1 text-[10px] font-semibold text-accent-foreground">
+            {user ? 'SUPABASE AUTH' : 'DEMO PROFILE'}
+          </span>
+        </div>
+        <div className="mt-6 grid gap-5 sm:grid-cols-2">
+          {[
+            ['Full Name', profile?.full_name || user?.user_metadata?.full_name || 'Arjun Menon'],
+            ['Work email', user?.email || 'arjun@southline-mep.example'],
+            ['Organization / Company', profile?.company_name || 'Southline MEP Engineering'],
+            ['Role', profile?.role || 'HVAC Estimator / Project Lead'],
+            ['Authentication Provider', user ? 'Supabase Auth (Email / Password)' : 'Configured Provider · Demo'],
+            ['User ID', user?.id ? `${user.id.slice(0, 18)}...` : 'Demo session'],
+          ].map(([a, b]) => (
+            <div key={a}>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{a}</div>
+              <div className="mt-1 text-sm font-medium">{b}</div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <LockKeyhole size={14}/>
+            Protected by Supabase Row Level Security (RLS)
+          </div>
+          {user && (
+            <button
+              onClick={handleLogout}
+              className="rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-primary hover:bg-muted"
+              data-testid="button-profile-logout"
+            >
+              Sign out
+            </button>
+          )}
+        </div>
+      </section>
+    </AppPage>
+  );
+}
+
+export function AppPage({eyebrow,title,subtitle,children}:{eyebrow:string;title:string;subtitle:string;children:React.ReactNode}){return <div className="mx-auto max-w-[1400px] px-4 py-7 sm:px-8 sm:py-10"><div className="animate-rise"><div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.17em] text-primary"><span className="h-px w-7 bg-primary/55"/>{eyebrow}</div><div className="mt-3 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><h1 className="font-brand text-2xl leading-tight tracking-[-.02em] sm:text-3xl">{title}</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{subtitle}</p></div><div className="flex items-center gap-2 text-[10px] text-muted-foreground"><span className="h-1.5 w-1.5 rounded-full bg-[#B9785E]"/>DEMO DATA · review before use</div></div></div><div className="mt-8 animate-rise-2">{children}</div></div>}
+export function SectionKicker({icon,text}:{icon:React.ReactNode;text:string}){return <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.14em] text-primary">{icon}{text}</div>}
 function StatusPill({label,tone='neutral'}:{label:string;tone?:'good'|'warm'|'bad'|'neutral'}){const styles={good:'bg-[#e5f0e8] text-[#356047]',warm:'bg-[#f8e7de] text-[#6c2f23]',bad:'bg-[#f5dddd] text-[#8b3029]',neutral:'bg-muted text-muted-foreground'};return <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${styles[tone]}`}>{label}</span>}
 function GaugeIcon(){return <Gauge size={14}/>}
 function HistoryIcon(){return <FileCheck2 size={14}/>}
