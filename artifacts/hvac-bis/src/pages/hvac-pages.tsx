@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, Check, ChevronRight, ClipboardCheck, CloudOff, Database, FileCheck2, FileText, Filter, Gauge, Info, LockKeyhole, MapPin, MoreHorizontal, Plus, RefreshCw, Search, ShieldCheck, SlidersHorizontal, Sparkles, Upload } from 'lucide-react';
+import { ArrowRight, Check, ChevronRight, ClipboardCheck, CloudOff, Database, FileCheck2, FileText, FileUp, Filter, Gauge, Info, LockKeyhole, MapPin, MoreHorizontal, Plus, RefreshCw, Search, ShieldCheck, SlidersHorizontal, Sparkles, Upload, X } from 'lucide-react';
 import { demoDocuments, demoEquipment, demoProject, demoRequirement, validationRows, auditRows, deliverables, type Document } from '@/data/demo';
-import { authService, requirementService, sizingService } from '@/services';
+import { authService, documentService, requirementService, sizingService } from '@/services';
 
 export function HomePage() {
   const [loginNote, setLoginNote] = useState('');
@@ -20,7 +20,204 @@ export function WorkspacePage() {
   return <AppPage eyebrow="Workspace" title="Good afternoon, Arjun." subtitle="A review-first view of the active bid. Every number below is labeled by provenance."><div className="blueprint-grid -mx-4 border-y border-border px-4 py-5 sm:-mx-8 sm:px-8"><ProjectStrip/></div><div className="mt-7 grid gap-5 xl:grid-cols-[1.4fr_.6fr]"><RequirementComposer/><SizingCard/></div><div className="mt-5 grid gap-5 lg:grid-cols-3"><TraceCard/><ValidationCard/><NextActions/></div><ProvenanceLegend/></AppPage>;
 }
 function ProjectStrip(){return <div className="flex flex-wrap items-center justify-between gap-4"><div className="flex items-center gap-3"><div className="rounded-lg bg-primary p-2.5 text-primary-foreground"><Database size={17}/></div><div><div className="text-sm font-semibold">{demoProject.name}</div><div className="mt-1 text-xs text-muted-foreground">{demoProject.location} · {demoProject.buildingType}</div></div></div><div className="flex items-center gap-4"><StatusPill label="IN REVIEW" tone="warm"/><div className="hidden text-right sm:block"><div className="text-[10px] uppercase tracking-wider text-muted-foreground">Last updated</div><div className="mt-1 text-xs">{demoProject.updatedAt}</div></div><Link href="/projects/chennai-office" className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline" data-testid="link-open-project">Open project <ArrowRight size={14}/></Link></div></div>}
-function RequirementComposer(){const [text,setText]=useState('Office building in Chennai. Three spaces require comfort cooling and fresh air: open office, meeting room, and server support.');const [notice,setNotice]=useState(''); return <section className="card-surface rounded-xl p-5 sm:p-6"><div className="flex items-start justify-between gap-4"><div><SectionKicker icon={<SlidersHorizontal size={14}/>} text="Requirement-driven mode"/><h2 className="mt-2 text-lg font-semibold">Start with what the bid actually says.</h2><p className="mt-1 text-xs text-muted-foreground">Paste a brief, clarification, or a plain-language requirement.</p></div><span className="hidden rounded-full bg-accent px-2.5 py-1 text-[10px] font-semibold text-accent-foreground sm:block">ACTIVE</span></div><textarea value={text} onChange={e=>setText(e.target.value)} className="mt-5 min-h-[145px] w-full resize-y rounded-lg border border-border bg-background px-4 py-3 text-sm leading-6 outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-primary" data-testid="textarea-requirement-input"/><div className="mt-3 flex flex-wrap items-center justify-between gap-2"><div className="flex items-center gap-2 text-[10px] text-muted-foreground"><Info size={13}/>No information is silently invented.</div><div className="flex gap-2"><button onClick={()=>{setText('');setNotice('Requirement input cleared locally. Nothing was deleted from a project.')}} className="rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-muted" data-testid="button-clear-requirement">Clear</button><button onClick={async()=>{const r=await requirementService.analyze(text);setNotice(r.message)}} className="flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90" data-testid="button-analyze-requirement"><Sparkles size={14}/>Analyze</button><button onClick={async()=>{const r=await requirementService.save(demoProject.id,text);setNotice(r.message)}} className="rounded-lg border border-border px-3.5 py-2 text-xs font-semibold hover:bg-muted" data-testid="button-save-requirement">Save to project</button></div></div>{notice&&<div className="mt-3 flex items-start gap-2 rounded-lg border border-[#c99077]/35 bg-[#f8e7de] px-3 py-2.5 text-xs text-[#6c2f23]" data-testid="status-requirement-pending"><CloudOff size={14} className="mt-0.5 shrink-0"/><span><strong>Backend pending:</strong> {notice}</span></div>}</section>}
+type InputMode = 'REQUIREMENT_DRIVEN' | 'DOCUMENT_DRIVEN';
+type StagedDocument = { id: string; file: File };
+
+function RequirementComposer() {
+  const [mode, setMode] = useState<InputMode>('REQUIREMENT_DRIVEN');
+  const [text, setText] = useState('Office building in Chennai. Three spaces require comfort cooling and fresh air: open office, meeting room, and server support.');
+  const [stagedDocuments, setStagedDocuments] = useState<StagedDocument[]>([]);
+  const [notice, setNotice] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const addFiles = (incoming: File[]) => {
+    const pdfs = incoming.filter((file) => file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'));
+    if (!pdfs.length) {
+      setNotice('Only PDF files can be staged in Document-Driven Mode.');
+      return;
+    }
+    setStagedDocuments((current) => {
+      const existing = new Set(current.map(({ file }) => `${file.name}-${file.size}-${file.lastModified}`));
+      const next = pdfs
+        .filter((file) => !existing.has(`${file.name}-${file.size}-${file.lastModified}`))
+        .map((file) => ({ id: `${file.name}-${file.size}-${file.lastModified}`, file }));
+      return [...current, ...next];
+    });
+    setNotice('Files are staged locally in this browser. No document analysis has run.');
+  };
+
+  const removeFile = (id: string) => {
+    setStagedDocuments((current) => current.filter((document) => document.id !== id));
+    setNotice('');
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    addFiles(Array.from(event.dataTransfer.files));
+  };
+
+  const selectMode = (nextMode: InputMode) => {
+    setMode(nextMode);
+    setNotice('');
+  };
+
+  return (
+    <section className="card-surface rounded-xl p-5 sm:p-6">
+      <ModeSelector mode={mode} onChange={selectMode} />
+      {mode === 'REQUIREMENT_DRIVEN' ? (
+        <>
+          <div className="mt-6 flex items-start justify-between gap-4 border-t border-border pt-5">
+            <div>
+              <SectionKicker icon={<SlidersHorizontal size={14} />} text="Requirement-driven mode" />
+              <h2 className="mt-2 text-lg font-semibold">Start with what the bid actually says.</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Paste a brief, clarification, or a plain-language requirement.</p>
+            </div>
+            <span className="hidden rounded-full bg-accent px-2.5 py-1 text-[10px] font-semibold text-accent-foreground sm:block">ACTIVE</span>
+          </div>
+          <textarea value={text} onChange={(event) => setText(event.target.value)} className="mt-5 min-h-[145px] w-full resize-y rounded-lg border border-border bg-background px-4 py-3 text-sm leading-6 outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-primary" data-testid="textarea-requirement-input" />
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground"><Info size={13} />No information is silently invented.</div>
+            <div className="flex gap-2">
+              <button onClick={() => { setText(''); setNotice('Requirement input cleared locally. Nothing was deleted from a project.'); }} className="rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-muted" data-testid="button-clear-requirement">Clear</button>
+              <button onClick={async () => { const result = await requirementService.analyze(text); setNotice(result.message); }} className="flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90" data-testid="button-analyze-requirement"><Sparkles size={14} />Analyze</button>
+              <button onClick={async () => { const result = await requirementService.save(demoProject.id, text); setNotice(result.message); }} className="rounded-lg border border-border px-3.5 py-2 text-xs font-semibold hover:bg-muted" data-testid="button-save-requirement">Save to project</button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <DocumentDrivenInput
+          documents={stagedDocuments}
+          isDragging={isDragging}
+          fileInputRef={fileInputRef}
+          onDragStateChange={setIsDragging}
+          onDrop={handleDrop}
+          onBrowse={() => fileInputRef.current?.click()}
+          onFiles={addFiles}
+          onRemove={removeFile}
+          onAnalyze={async () => { const result = await documentService.analyze(stagedDocuments.map(({ file }) => file)); setNotice(result.message); }}
+          formatFileSize={formatFileSize}
+        />
+      )}
+      {notice && <div className="mt-3 flex items-start gap-2 rounded-lg border border-[#c99077]/35 bg-[#f8e7de] px-3 py-2.5 text-xs text-[#6c2f23]" data-testid="status-requirement-pending"><CloudOff size={14} className="mt-0.5 shrink-0" /><span><strong>{mode === 'DOCUMENT_DRIVEN' ? 'Document mode:' : 'Backend pending:'}</strong> {notice}</span></div>}
+    </section>
+  );
+}
+
+function ModeSelector({ mode, onChange }: { mode: InputMode; onChange: (mode: InputMode) => void }) {
+  return (
+    <div className="border-b border-border pb-5" data-testid="input-mode-selector">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <SectionKicker icon={<FileUp size={14} />} text="Choose an entry point" />
+          <h2 className="mt-2 text-lg font-semibold">How should this bid enter the workbench?</h2>
+        </div>
+        <span className="text-[10px] uppercase tracking-[.14em] text-muted-foreground">One project · two modes</span>
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <ModeButton
+          active={mode === 'REQUIREMENT_DRIVEN'}
+          icon={<SlidersHorizontal size={16} />}
+          label="Requirement-driven"
+          description="Describe the HVAC need in plain language."
+          onClick={() => onChange('REQUIREMENT_DRIVEN')}
+          testId="button-mode-requirement"
+        />
+        <ModeButton
+          active={mode === 'DOCUMENT_DRIVEN'}
+          icon={<FileText size={16} />}
+          label="Document-driven"
+          description="Stage tender, BOQ, drawings, or specifications."
+          onClick={() => onChange('DOCUMENT_DRIVEN')}
+          testId="button-mode-document"
+        />
+      </div>
+    </div>
+  );
+}
+
+function ModeButton({ active, icon, label, description, onClick, testId }: { active: boolean; icon: React.ReactNode; label: string; description: string; onClick: () => void; testId: string }) {
+  return (
+    <button onClick={onClick} aria-pressed={active} className={`flex items-start gap-3 rounded-xl border p-3.5 text-left transition-all ${active ? 'border-primary bg-primary text-primary-foreground shadow-sm' : 'border-border bg-background hover:border-primary/45 hover:bg-muted'}`} data-testid={testId}>
+      <span className={`mt-0.5 rounded-lg p-2 ${active ? 'bg-primary-foreground/15' : 'bg-muted text-primary'}`}>{icon}</span>
+      <span className="min-w-0">
+        <span className="flex items-center gap-2 text-sm font-semibold">{label}{active && <span className="rounded-full bg-primary-foreground/15 px-1.5 py-0.5 text-[9px] uppercase tracking-wider">Active</span>}</span>
+        <span className={`mt-1 block text-[11px] leading-relaxed ${active ? 'text-primary-foreground/75' : 'text-muted-foreground'}`}>{description}</span>
+      </span>
+    </button>
+  );
+}
+
+function DocumentDrivenInput({ documents, isDragging, fileInputRef, onDragStateChange, onDrop, onBrowse, onFiles, onRemove, onAnalyze, formatFileSize }: { documents: StagedDocument[]; isDragging: boolean; fileInputRef: React.RefObject<HTMLInputElement | null>; onDragStateChange: (dragging: boolean) => void; onDrop: (event: React.DragEvent<HTMLDivElement>) => void; onBrowse: () => void; onFiles: (files: File[]) => void; onRemove: (id: string) => void; onAnalyze: () => Promise<void>; formatFileSize: (bytes: number) => string }) {
+  return (
+    <div className="border-t border-border pt-5" data-testid="document-driven-input">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <SectionKicker icon={<FileText size={14} />} text="Document-driven mode" />
+          <h2 className="mt-2 text-lg font-semibold">Bring the bid documents into view.</h2>
+          <p className="mt-1 max-w-xl text-xs leading-5 text-muted-foreground">Stage PDFs locally now. OCR, classification, extraction, and cross-document validation will run after the SNS workflow is connected.</p>
+        </div>
+        <span className="rounded-full border border-primary/30 bg-[#f8e7de] px-2.5 py-1 text-[10px] font-semibold text-[#6c2f23]">BACKEND PENDING</span>
+      </div>
+      <input ref={fileInputRef} type="file" accept="application/pdf,.pdf" multiple className="hidden" onChange={(event) => { onFiles(Array.from(event.target.files ?? [])); event.currentTarget.value = ''; }} data-testid="input-document-files" />
+      <div onDragEnter={(event) => { event.preventDefault(); onDragStateChange(true); }} onDragOver={(event) => event.preventDefault()} onDragLeave={() => onDragStateChange(false)} onDrop={onDrop} className={`blueprint-grid mt-5 rounded-xl border border-dashed p-5 transition-colors sm:p-7 ${isDragging ? 'border-primary bg-[#f8e7de]' : 'border-primary/30 bg-background'}`} data-testid="document-dropzone">
+        <div className="flex flex-col items-center justify-center text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground"><FileUp size={21} /></div>
+          <h3 className="mt-4 text-sm font-semibold">Drop tender PDFs here</h3>
+          <p className="mt-1 text-xs text-muted-foreground">Multiple PDFs supported · files stay staged in this browser</p>
+          <button onClick={onBrowse} className="mt-4 flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:opacity-90" data-testid="button-browse-documents"><Upload size={14} />Browse files</button>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-[.12em] text-muted-foreground">Accepted for future extraction</span>
+        {['Tender', 'Bid document', 'BOQ', 'HVAC specification', 'Technical specification', 'Drawing', 'Quotation'].map((type) => <span key={type} className="rounded-full border border-border bg-muted/55 px-2.5 py-1 text-[10px] text-muted-foreground">{type}</span>)}
+      </div>
+      {documents.length > 0 && (
+        <div className="mt-5 space-y-2" data-testid="staged-document-list">
+          {documents.map(({ id, file }) => (
+            <div key={id} className="rounded-lg border border-border bg-background p-3" data-testid={`staged-document-${id}`}>
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-[#f5e4dc] p-2 text-primary"><FileText size={16} /></div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-xs font-semibold">{file.name}</div>
+                  <div className="mt-1 text-[10px] text-muted-foreground">{formatFileSize(file.size)} · PDF · STAGED LOCALLY</div>
+                </div>
+                <button onClick={() => onRemove(id)} aria-label={`Remove ${file.name}`} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" data-testid={`button-remove-document-${id}`}><X size={15} /></button>
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"><div className="h-full w-full rounded-full bg-primary" /></div>
+                <span className="text-[10px] font-semibold text-primary">100%</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-[10px] text-muted-foreground"><Info size={13} />No OCR or document claims are generated in this prototype.</div>
+        <button onClick={onAnalyze} disabled={!documents.length} className="flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40" data-testid="button-analyze-documents"><Sparkles size={14} />Analyze documents</button>
+      </div>
+      <DocumentWorkflowRail />
+    </div>
+  );
+}
+
+function DocumentWorkflowRail() {
+  const stages = ['PDF upload', 'OCR / extraction', 'Classification', 'Requirement extraction', 'BOQ / spec extraction', 'Cross-document validation', 'Equipment analysis', 'Commercial analysis', 'Deliverable planning', 'Audit / traceability'];
+  return (
+    <div className="mt-6 rounded-lg border border-border bg-muted/45 p-3" data-testid="document-workflow-rail">
+      <div className="text-[10px] font-semibold uppercase tracking-[.14em] text-muted-foreground">Future document workflow</div>
+      <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+        {stages.map((stage, index) => <div key={stage} className={`flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1.5 text-[10px] ${index === 0 ? 'border-primary/35 bg-[#f8e7de] font-semibold text-[#6c2f23]' : 'border-border bg-background text-muted-foreground'}`}><span className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] ${index === 0 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>{index + 1}</span>{stage}</div>)}
+      </div>
+    </div>
+  );
+}
 function SizingCard(){const [note,setNote]=useState('');return <section className="card-surface rounded-xl p-5 sm:p-6"><div className="flex items-start justify-between"><div><SectionKicker icon={<GaugeIcon/>} text="Sizing snapshot"/><h2 className="mt-2 text-lg font-semibold">Preliminary engineering view</h2></div><span className="rounded-full border border-[#c99077]/40 bg-[#f8e7de] px-2 py-1 text-[10px] font-semibold text-[#6c2f23]">DEMO DATA</span></div><div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-5">{[['2.4 TR','Cooling load'],['960 CFM','Airflow'],['93 CFM','Fresh air'],['3','Spaces'],['15','Occupants']].map(([v,l])=><div key={l}><div className="text-xl font-semibold tracking-tight">{v}</div><div className="mt-1 text-[11px] text-muted-foreground">{l}</div></div>)}</div><div className="mt-5 rounded-lg bg-muted/70 p-3 text-[11px] leading-relaxed text-muted-foreground"><span className="font-semibold text-foreground">PRELIMINARY ESTIMATE.</span> Verify loads, diversity, ventilation, and equipment selection before tender issue.</div><button onClick={async()=>{const r=await sizingService.calculate(demoProject.id);setNote(r.message)}} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-xs font-semibold hover:bg-muted" data-testid="button-request-sizing"><RefreshCw size={14}/>Request connected calculation</button>{note&&<div className="mt-2 text-center text-[10px] text-primary" data-testid="status-sizing-pending">{note}</div>}</section>}
 function TraceCard(){return <section className="card-surface rounded-xl p-5"><SectionKicker icon={<FileCheck2 size={14}/>} text="Traceability"/><h2 className="mt-2 text-lg font-semibold">Known, not assumed.</h2><div className="mt-4 space-y-2.5">{[['SOURCE FACT','3 spaces identified','Tender brief + plan'],['DETERMINISTIC CALCULATION','Occupancy total: 15','Space register'],['AI RECOMMENDATION','Confirm glazing and heat load','NEEDS REVIEW']].map(([a,b,c])=><div key={a} className="border-l-2 border-primary/35 pl-3"><div className="text-[10px] font-semibold uppercase tracking-wider text-primary">{a}</div><div className="mt-1 text-xs font-medium">{b}</div><div className="mt-0.5 text-[10px] text-muted-foreground">{c}</div></div>)}</div></section>}
 function ValidationCard(){return <section className="card-surface rounded-xl p-5"><SectionKicker icon={<ClipboardCheck size={14}/>} text="Bid validation"/><div className="mt-2 flex items-end justify-between"><h2 className="text-lg font-semibold">Review posture</h2><StatusPill label="2 warnings" tone="warm"/></div><div className="mt-4 space-y-2">{validationRows.slice(0,4).map(([label,status])=><div className="flex items-center justify-between text-xs" key={label}><span>{label}</span><StatusPill label={status} tone={status==='PASS'?'good':status==='CONFLICT'?'bad':'warm'}/></div>)}</div><Link href="/validation" className="mt-4 flex items-center gap-1 text-xs font-semibold text-primary hover:underline" data-testid="link-review-validation">Review validation <ArrowRight size={14}/></Link></section>}

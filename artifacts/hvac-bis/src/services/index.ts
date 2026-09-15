@@ -2,7 +2,16 @@ import type { AuthService, AuditService, DocumentService, EquipmentService, Deli
 const pending = <T,>(message: string): IntegrationPending<T> => ({ status: 'INTEGRATION_PENDING', message });
 export const authService: AuthService = { getSession: async () => pending('Authentication service is not connected.'), beginLogin: async () => pending('Login will connect to the configured identity provider.'), logout: async () => pending('Logout will be handled by the identity provider.') };
 export const projectService: ProjectService = { list: async (): Promise<ServiceResult<unknown[]>> => ({ status: 'DEMO_DATA', data: [] }), get: async (projectId) => pending(`Project service pending for ${projectId}.`), save: async () => pending('Project persistence is not connected.') };
-export const documentService: DocumentService = { list: async (): Promise<ServiceResult<unknown[]>> => ({ status: 'DEMO_DATA', data: [] }), process: async () => pending('Document processing requires the SNS Agent Workbench backend.') };
+export const documentService: DocumentService = {
+  list: async (): Promise<ServiceResult<unknown[]>> => ({ status: 'DEMO_DATA', data: [] }),
+  process: async () => pending('Document processing requires the SNS Agent Workbench backend.'),
+  analyze: async (files) =>
+    pending(
+      files.length
+        ? 'Document analysis will begin when the SNS document-processing workflow is connected.'
+        : 'Add at least one PDF before requesting document analysis.',
+    ),
+};
 export const requirementService: RequirementService = { analyze: async () => pending('Requirement analysis is unconnected; no document or text was sent.'), save: async () => pending('Saving requirements requires the project service.') };
 export const sizingService: SizingService = { calculate: async () => pending('Sizing calculation service is pending engineering backend integration.') };
 export const validationService: ValidationService = { validate: async () => pending('Validation service is pending backend integration.') };
