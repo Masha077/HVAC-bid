@@ -1,6 +1,6 @@
-# [Project name]
+# HVAC BIS
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+HVAC BIS is a frontend-only engineering workbench for organizing HVAC bid requirements, preliminary sizing, validation, traceability, and project deliverables.
 
 ## Run & Operate
 
@@ -22,23 +22,35 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/hvac-bis/src/pages/hvac-pages.tsx` — product routes and demo workflow views
+- `artifacts/hvac-bis/src/components/app-shell.tsx` — responsive shell, navigation, account menu, and history panel
+- `artifacts/hvac-bis/src/data/demo.ts` — clearly labeled Chennai Office HVAC prototype data
+- `artifacts/hvac-bis/src/services/` — integration-pending service interfaces and adapters
+- `artifacts/hvac-bis/src/domain/models.ts` — shared typed HVAC domain models
+- `artifacts/hvac-bis/src/index.css` — brand tokens, light/dark themes, typography, blueprint texture, and motion
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first release is intentionally frontend-only; it never presents a local demo action as a successful backend operation.
+- Prototype values are surfaced as `DEMO DATA`, `PRELIMINARY ESTIMATE`, or `NEEDS REVIEW` so they cannot be mistaken for engineering sign-off.
+- Authentication, document processing, sizing, validation, equipment, supplier, deliverable, and audit operations are expressed as service boundaries for the future SNS Agent Workbench connection.
+- Project outputs and source documents are scoped to the active project in the UI rather than shown as a global mixed feed.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Auth-ready product entry with provider-pending login messaging
+- Requirement-driven workspace for the Chennai Office HVAC demo project
+- Project workspace, requirements review, bid validation, audit trail, deliverables, library, equipment/map preview, settings, and profile routes
+- Responsive shell with collapsed recent-history panel showing the latest five documents
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+No additional preferences recorded.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The app is not a backend or authentication implementation yet; integration-pending states are intentional.
+- Equipment and supplier views must not invent manufacturer, model, price, availability, or location claims.
 
 ## Pointers
 

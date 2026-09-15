@@ -1,0 +1,12 @@
+import type { AuthService, AuditService, DocumentService, EquipmentService, DeliverableService, ProjectService, RequirementService, ServiceResult, SizingService, SupplierService, ValidationService, IntegrationPending } from './types';
+const pending = <T,>(message: string): IntegrationPending<T> => ({ status: 'INTEGRATION_PENDING', message });
+export const authService: AuthService = { getSession: async () => pending('Authentication service is not connected.'), beginLogin: async () => pending('Login will connect to the configured identity provider.'), logout: async () => pending('Logout will be handled by the identity provider.') };
+export const projectService: ProjectService = { list: async (): Promise<ServiceResult<unknown[]>> => ({ status: 'DEMO_DATA', data: [] }), get: async (projectId) => pending(`Project service pending for ${projectId}.`), save: async () => pending('Project persistence is not connected.') };
+export const documentService: DocumentService = { list: async (): Promise<ServiceResult<unknown[]>> => ({ status: 'DEMO_DATA', data: [] }), process: async () => pending('Document processing requires the SNS Agent Workbench backend.') };
+export const requirementService: RequirementService = { analyze: async () => pending('Requirement analysis is unconnected; no document or text was sent.'), save: async () => pending('Saving requirements requires the project service.') };
+export const sizingService: SizingService = { calculate: async () => pending('Sizing calculation service is pending engineering backend integration.') };
+export const validationService: ValidationService = { validate: async () => pending('Validation service is pending backend integration.') };
+export const equipmentService: EquipmentService = { search: async () => pending('Verified equipment data is not connected.') };
+export const supplierService: SupplierService = { search: async () => pending('Supplier availability provider integration is coming soon.') };
+export const deliverableService: DeliverableService = { list: async () => ({ status: 'DEMO_DATA', data: [] }) };
+export const auditService: AuditService = { list: async () => ({ status: 'DEMO_DATA', data: [] }) };

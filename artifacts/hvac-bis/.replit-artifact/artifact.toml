@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "HVAC BIS"
+description = "A production-quality HVAC bid intelligence workbench for contractors, estimators, and engineers. The frontend organizes requirement-driven analysis, document intake, validation, deliverables, auditability, and future SNS Agent Workbench integrations without fabricating backend results."
+version = "1.0.0"
+id = "artifacts/hvac-bis"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21893
+
+[services.development]
+run = "pnpm --filter @workspace/hvac-bis run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/hvac-bis", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/hvac-bis/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21893"
+BASE_PATH = "/"
