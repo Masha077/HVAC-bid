@@ -1,17 +1,8 @@
-# Dependencies
+# ─── Dependencies ─────────────────────────────────────────────────────────
 node_modules/
 .pnpm-store/
 
-# Compiled Output & Builds
-dist/
-build/
-tmp/
-out-tsc/
-*.tsbuildinfo
-.expo/
-.expo-shared/
-
-# Environment Variables & Secrets (CRITICAL)
+# ─── Environment Variables & Secrets (CRITICAL — NEVER COMMIT) ───────────
 .env
 .env.*
 .env.local
@@ -24,17 +15,22 @@ out-tsc/
 **/.env.*.local
 !**/.env.example
 
-# Package Manager Lockfiles (using pnpm workspace)
-package-lock.json
+# ─── Build Outputs ────────────────────────────────────────────────────────
+dist/
+build/
+*.tsbuildinfo
+*.js.map
+out-tsc/
 
-# IDEs & Editors
+# ─── Browser & System Cache ───────────────────────────────────────────────
+.chrome_user_data/
+.cache/
+.local/
+.DS_Store
+Thumbs.db
+
+# ─── IDEs & Editors ───────────────────────────────────────────────────────
 .idea/
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -42,22 +38,72 @@ package-lock.json
 !.vscode/extensions.json
 .cursor/
 
-# Temporary / Attached / Conversation Dumps
-attached_assets/
-.conversation/
-
-# Logs
+# ─── Logs ─────────────────────────────────────────────────────────────────
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-# System Files
-.DS_Store
-Thumbs.db
-
-# Replit
-.cache/
-.local/
+# ─── Scratch / Temporary Scripts & Media at Root ──────────────────────────
+scratch/
+**/scratch/
+*.png
+*.webp
+auto_build_workflow.js
+builder_auto_result.png
+build_and_export_hvac_canvas_graph.js
+build_and_render_workbench_fast.js
+build_and_verify_phase1.js
+build_canvas_live.js
+build_full_hvac_workflow.js
+build_hvac_flow_nodes.js
+build_phase1_foundation_only.js
+build_phase1_via_ui_clicks.js
+build_real_connected_hvac_graph.js
+builtin_sns_tools.json
+capture_workbench_artifact_proof.js
+confirmed_live_saved_state.png
+current_canvas_raw_state.png
+double_check_save_ui.js
+expand_all_tool_categories.js
+extract_react_tool_catalog.js
+fast_clean_and_connect_graph.js
+get_all_built_in_sns_tools.js
+get_full_builtin_tool_definitions.js
+get_sns_sidebar_tools.js
+hvac_workbench_full_canvas.png
+hvac_workbench_sidebar_nodes.png
+inspect_and_clean_live_canvas.js
+inspect_node_red_validation.js
+inspect_phase1_nodes.js
+inspect_sidebar_drag_data.js
+inspect_tool_schemas.js
+inspect_workbench_buttons.js
+inspect_workbench_node_schema.js
+inspect_workbench_ui.js
+intercept_save_payload.js
+launch_builder.js
+live_builder_completed.png
+live_builder_done.png
+phase1_builtin_tools_schema.json
+phase1_foundation_verified_canvas.png
+phase1_live_canvas_verified.png
+phase1_valid_builtin_payload.json
+populate_all_hvac_canvas_nodes.js
+push_real_hvac_graph_to_sns_api.js
+real_drag_to_empty_space.js
+save_payload_structure.json
+sns_sidebar_tools_map.json
+sns_workbench_live_server_persisted.png
+sns_workbench_real_connected_graph.png
+sns_workbench_ui_execution_modal.png
+test_drag_and_drop_mechanics.js
+test_phase1_execution.js
+test_sns_workbench_ui_execution.js
+verify_save_persistence.js
+visualize_sns_workbench.js
+workbench_expanded_sidebar.png
+workbench_inspect.png
+workbench_nodes_rendered.png
+workbench_ui_elements.png
+workflow-*.json

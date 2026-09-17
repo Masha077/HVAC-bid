@@ -1,0 +1,39 @@
+{
+  "name": "hvac-bis-backend",
+  "version": "1.0.0",
+  "description": "HVAC Bid Intelligence System (HVAC BIS) Production Backend & Integration Layer",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "test:requirement": "ts-node tests/requirement_test.ts",
+    "test:hybrid": "ts-node tests/hybrid_test.ts",
+    "test:revision": "ts-node tests/revision_and_custom_test.ts",
+    "test:all": "ts-node tests/requirement_test.ts && ts-node tests/hybrid_test.ts && ts-node tests/revision_and_custom_test.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1",
+    "@types/multer": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "localtunnel": "^2.0.2",
+    "multer": "^2.4.0",
+    "pdf-parse": "^1.1.1",
+    "pdfkit": "^0.16.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.5",
+    "@types/pdf-parse": "^1.1.4",
+    "@types/pdfkit": "^0.13.9",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.2.2",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.3"
+  }
+}
